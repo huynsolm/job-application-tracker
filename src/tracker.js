@@ -15,6 +15,16 @@ export function validateApplication(application) {
   return errors;
 }
 
+export function getDeadlineStatus(deadline, today = new Date().toISOString().slice(0, 10)) {
+  if (!deadline) return { kind: 'none', label: '마감일 미정' };
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const days = Math.round((Date.parse(`${deadline}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / millisecondsPerDay);
+  if (days < 0) return { kind: 'overdue', label: '마감 지남' };
+  if (days === 0) return { kind: 'today', label: '오늘 마감' };
+  if (days <= 6) return { kind: 'soon', label: `마감 임박 · ${days}일` };
+  return { kind: 'upcoming', label: '마감까지 7일+' };
+}
+
 export function sortApplicationsByDeadline(applications) {
   return [...applications].sort((left, right) => {
     if (!left.deadline && !right.deadline) return 0;

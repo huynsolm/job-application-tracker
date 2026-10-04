@@ -4,6 +4,7 @@ import {
   buildCalendarEvent,
   deserializeApplications,
   filterApplications,
+  getDeadlineStatus,
   serializeApplications,
   sortApplicationsByDeadline,
   validateApplication,
@@ -67,4 +68,13 @@ test('deserializeApplications restores valid backups and rejects malformed data'
   assert.deepEqual(deserializeApplications(backup).map(({ id }) => id), ['a1']);
   assert.throws(() => deserializeApplications('{not-json}'), /백업 파일을 읽을 수 없습니다/);
   assert.throws(() => deserializeApplications(JSON.stringify({ version: 1, applications: [{ company: '', role: 'Web Publisher' }] })), /지원 기록 형식이 올바르지 않습니다/);
+});
+
+test('getDeadlineStatus labels today, imminent, upcoming, overdue, and missing deadlines', () => {
+  const today = '2026-10-04';
+  assert.deepEqual(getDeadlineStatus('2026-10-04', today), { kind: 'today', label: '오늘 마감' });
+  assert.deepEqual(getDeadlineStatus('2026-10-10', today), { kind: 'soon', label: '마감 임박 · 6일' });
+  assert.deepEqual(getDeadlineStatus('2026-10-11', today), { kind: 'upcoming', label: '마감까지 7일+' });
+  assert.deepEqual(getDeadlineStatus('2026-10-03', today), { kind: 'overdue', label: '마감 지남' });
+  assert.deepEqual(getDeadlineStatus('', today), { kind: 'none', label: '마감일 미정' });
 });

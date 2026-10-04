@@ -66,6 +66,28 @@ export function buildCalendarEvent(application) {
   ].join('\r\n');
 }
 
+export function serializeApplications(applications) {
+  return JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), applications }, null, 2);
+}
+
+export function deserializeApplications(json) {
+  let backup;
+  try { backup = JSON.parse(json); } catch { throw new Error('백업 파일을 읽을 수 없습니다. JSON 파일인지 확인해 주세요.'); }
+  if (backup?.version !== 1 || !Array.isArray(backup.applications)) throw new Error('지원 기록 형식이 올바르지 않습니다.');
+  const records = backup.applications.map((application) => ({
+    id: application.id,
+    company: application.company?.trim(),
+    role: application.role?.trim(),
+    url: application.url?.trim() ?? '',
+    deadline: application.deadline ?? '',
+    status: STATUSES.includes(application.status) ? application.status : 'Saved',
+    notes: application.notes?.trim() ?? '',
+    createdAt: application.createdAt ?? new Date().toISOString(),
+  }));
+  if (records.some((application) => !application.id || Object.keys(validateApplication(application)).length)) throw new Error('지원 기록 형식이 올바르지 않습니다.');
+  return records;
+}
+
 export function createApplication(values) {
   return {
     id: crypto.randomUUID(),

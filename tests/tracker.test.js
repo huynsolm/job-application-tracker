@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildCalendarEvent,
+  deserializeApplications,
   filterApplications,
+  serializeApplications,
   sortApplicationsByDeadline,
   validateApplication,
 } from '../src/tracker.js';
@@ -52,4 +54,17 @@ test('buildCalendarEvent creates an all-day deadline event', () => {
   assert.match(calendar, /SUMMARY:마감: Nous Research — Web Publisher/);
   assert.match(calendar, /DTSTART;VALUE=DATE:20261010/);
   assert.match(calendar, /DTEND;VALUE=DATE:20261011/);
+});
+
+test('serializeApplications creates a portable versioned JSON backup', () => {
+  const backup = JSON.parse(serializeApplications([{ id: 'a1', ...base, createdAt: '2026-10-01T00:00:00.000Z' }]));
+  assert.equal(backup.version, 1);
+  assert.deepEqual(backup.applications.map(({ id }) => id), ['a1']);
+});
+
+test('deserializeApplications restores valid backups and rejects malformed data', () => {
+  const backup = JSON.stringify({ version: 1, applications: [{ id: 'a1', ...base, createdAt: '2026-10-01T00:00:00.000Z' }] });
+  assert.deepEqual(deserializeApplications(backup).map(({ id }) => id), ['a1']);
+  assert.throws(() => deserializeApplications('{not-json}'), /백업 파일을 읽을 수 없습니다/);
+  assert.throws(() => deserializeApplications(JSON.stringify({ version: 1, applications: [{ company: '', role: 'Web Publisher' }] })), /지원 기록 형식이 올바르지 않습니다/);
 });

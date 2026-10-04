@@ -14,6 +14,7 @@ https://team-library.biny.cloud/job-application-tracker/
 - 회사 또는 직무 검색, 상태별 필터, 가까운 마감일 정렬
 - `Saved` · `Applied` · `Interview` · `Offer` · `Closed` 상태 변경
 - 마감일을 `.ics` 캘린더 파일로 내보내기
+- JSON 백업 다운로드와 다른 브라우저에서의 JSON 복원
 - 반응형 UI와 키보드 접근성 지원
 
 ## Run locally

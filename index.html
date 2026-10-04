@@ -19,6 +19,7 @@
         <div class="form-actions"><button type="submit">지원 기록 저장</button><p data-form-message role="status" aria-live="polite"></p></div>
       </form>
     </section>
+    <section class="panel backup" aria-labelledby="backup-title"><div class="section-heading"><div><p class="eyebrow">BACKUP</p><h2 id="backup-title">백업과 복원</h2></div><p>JSON 파일로 전체 지원 기록을 내려받거나 다른 브라우저에서 가져올 수 있습니다.</p></div><div class="backup-actions"><button type="button" data-export>백업 다운로드</button><label class="button-file" for="import-file">백업 파일 가져오기<input id="import-file" data-import type="file" accept="application/json,.json"></label></div><p data-backup-message role="status" aria-live="polite"></p></section>
     <section class="applications" aria-labelledby="applications-title"><div class="section-heading"><div><p class="eyebrow">APPLICATIONS</p><h2 id="applications-title">지원 목록</h2></div><div class="filters"><label class="sr-only" for="search">회사 또는 직무 검색</label><input id="search" data-search placeholder="회사 또는 직무 검색"><label class="sr-only" for="status-filter">상태 필터</label><select id="status-filter" data-status-filter><option value="All">전체 상태</option><option>Saved</option><option>Applied</option><option>Interview</option><option>Offer</option><option>Closed</option></select></div></div><div data-application-list class="application-list"></div></section>
   </main>
 </body>

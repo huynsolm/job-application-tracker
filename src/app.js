@@ -1,4 +1,4 @@
-import { STATUSES, buildCalendarEvent, createApplication, filterApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
+import { STATUSES, buildCalendarEvent, createApplication, deserializeApplications, filterApplications, serializeApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
 
 const STORAGE_KEY = 'job-application-tracker:applications:v1';
 const form = document.querySelector('[data-application-form]');
@@ -6,6 +6,9 @@ const list = document.querySelector('[data-application-list]');
 const message = document.querySelector('[data-form-message]');
 const search = document.querySelector('[data-search]');
 const statusFilter = document.querySelector('[data-status-filter]');
+const exportButton = document.querySelector('[data-export]');
+const importInput = document.querySelector('[data-import]');
+const backupMessage = document.querySelector('[data-backup-message]');
 let applications = loadApplications();
 
 function loadApplications() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []; } catch { return []; } }
@@ -23,4 +26,7 @@ form.addEventListener('submit', (event) => { event.preventDefault(); const value
 search.addEventListener('input', render); statusFilter.addEventListener('change', render);
 list.addEventListener('change', (event) => { const id = event.target.dataset.status; if (!id) return; applications = applications.map((application) => application.id === id ? { ...application, status: event.target.value } : application); persist(); render(); });
 list.addEventListener('click', (event) => { const id = event.target.dataset.calendar ?? event.target.dataset.delete; if (!id) return; const application = applications.find((item) => item.id === id); if (event.target.dataset.calendar) downloadCalendar(application); if (event.target.dataset.delete) { applications = applications.filter((item) => item.id !== id); persist(); render(); } });
+function downloadBackup() { const blob = new Blob([serializeApplications(applications)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'), { href: url, download: 'job-application-tracker-backup.json' }); link.click(); URL.revokeObjectURL(url); backupMessage.textContent = `${applications.length}개 지원 기록을 백업 파일로 저장했습니다.`; }
+exportButton.addEventListener('click', downloadBackup);
+importInput.addEventListener('change', async () => { const [file] = importInput.files; if (!file) return; try { applications = deserializeApplications(await file.text()); persist(); render(); backupMessage.textContent = `${applications.length}개 지원 기록을 복원했습니다.`; } catch (error) { backupMessage.textContent = error.message; } finally { importInput.value = ''; } });
 render();

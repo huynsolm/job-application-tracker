@@ -1,0 +1,10 @@
+{
+  "name": "job-application-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check src/tracker.js && node --check src/app.js"
+  }
+}

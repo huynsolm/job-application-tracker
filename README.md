@@ -1,5 +1,7 @@
 # Job Application Tracker
 
+[![Verify](https://github.com/huynsolm/job-application-tracker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/huynsolm/job-application-tracker/actions/workflows/ci.yml)
+
 개인 지원 현황과 마감일을 정리하는 브라우저 기반 도구입니다. 데이터는 서버로 전송되지 않고, 사용하는 브라우저의 `localStorage`에만 저장됩니다.
 
 ## Live demo

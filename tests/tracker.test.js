@@ -6,6 +6,7 @@ import {
   filterApplications,
   getApplicationStats,
   getDeadlineStatus,
+  getNotifiableDeadlines,
   serializeApplications,
   sortApplicationsByDeadline,
   validateApplication,
@@ -88,4 +89,14 @@ test('getApplicationStats counts active, interview, monthly applications, and ur
     { status: 'Saved', createdAt: '2026-09-30T00:00:00.000Z', deadline: '' },
   ], '2026-10-04');
   assert.deepEqual(stats, { active: 3, interviews: 1, monthly: 3, urgent: 2 });
+});
+
+test('getNotifiableDeadlines returns only today and imminent open applications', () => {
+  const records = [
+    { company: 'Today', role: 'Web', status: 'Applied', deadline: '2026-10-04' },
+    { company: 'Soon', role: 'Web', status: 'Interview', deadline: '2026-10-08' },
+    { company: 'Closed', role: 'Web', status: 'Closed', deadline: '2026-10-04' },
+    { company: 'Later', role: 'Web', status: 'Saved', deadline: '2026-10-12' },
+  ];
+  assert.deepEqual(getNotifiableDeadlines(records, '2026-10-04').map(({ company }) => company), ['Today', 'Soon']);
 });

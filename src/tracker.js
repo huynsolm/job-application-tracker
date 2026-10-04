@@ -35,6 +35,10 @@ export function getApplicationStats(applications, today = new Date().toISOString
   };
 }
 
+export function getNotifiableDeadlines(applications, today = new Date().toISOString().slice(0, 10)) {
+  return applications.filter((application) => !['Offer', 'Closed'].includes(application.status) && ['today', 'soon'].includes(getDeadlineStatus(application.deadline, today).kind));
+}
+
 export function sortApplicationsByDeadline(applications) {
   return [...applications].sort((left, right) => {
     if (!left.deadline && !right.deadline) return 0;

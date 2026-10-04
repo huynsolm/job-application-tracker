@@ -1,4 +1,4 @@
-import { STATUSES, buildCalendarEvent, createApplication, deserializeApplications, filterApplications, getApplicationStats, getDeadlineStatus, serializeApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
+import { STATUSES, buildCalendarEvent, createApplication, deserializeApplications, filterApplications, getApplicationStats, getDeadlineStatus, getNotifiableDeadlines, serializeApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
 
 const STORAGE_KEY = 'job-application-tracker:applications:v1';
 const form = document.querySelector('[data-application-form]');
@@ -9,6 +9,9 @@ const statusFilter = document.querySelector('[data-status-filter]');
 const exportButton = document.querySelector('[data-export]');
 const importInput = document.querySelector('[data-import]');
 const backupMessage = document.querySelector('[data-backup-message]');
+const notificationButton = document.querySelector('[data-enable-notifications]');
+const notificationMessage = document.querySelector('[data-notification-message]');
+const NOTIFICATION_KEY = 'job-application-tracker:last-deadline-notification';
 let applications = loadApplications();
 
 function loadApplications() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []; } catch { return []; } }
@@ -32,5 +35,23 @@ list.addEventListener('click', (event) => { const id = event.target.dataset.cale
 function downloadBackup() { const blob = new Blob([serializeApplications(applications)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'), { href: url, download: 'job-application-tracker-backup.json' }); link.click(); URL.revokeObjectURL(url); backupMessage.textContent = `${applications.length}개 지원 기록을 백업 파일로 저장했습니다.`; }
 exportButton.addEventListener('click', downloadBackup);
 importInput.addEventListener('change', async () => { const [file] = importInput.files; if (!file) return; try { applications = deserializeApplications(await file.text()); persist(); render(); backupMessage.textContent = `${applications.length}개 지원 기록을 복원했습니다.`; } catch (error) { backupMessage.textContent = error.message; } finally { importInput.value = ''; } });
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+async function notifyDeadlineSummary() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const today = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem(NOTIFICATION_KEY) === today) return;
+  const urgent = getNotifiableDeadlines(applications, today);
+  if (!urgent.length) return;
+  const body = urgent.map((item) => `${item.company} · ${getDeadlineStatus(item.deadline, today).label}`).join('\n');
+  const registration = await navigator.serviceWorker?.ready;
+  if (registration) await registration.showNotification(`지원 마감 확인 · ${urgent.length}건`, { body, icon: './icons/icon-192.png', tag: `deadlines-${today}` });
+  else new Notification(`지원 마감 확인 · ${urgent.length}건`, { body });
+  localStorage.setItem(NOTIFICATION_KEY, today);
+}
+notificationButton.addEventListener('click', async () => {
+  if (!('Notification' in window)) { notificationMessage.textContent = '이 브라우저는 알림 기능을 지원하지 않습니다.'; return; }
+  const permission = await Notification.requestPermission();
+  notificationMessage.textContent = permission === 'granted' ? '마감 알림을 켰습니다. 도구를 열 때 하루 한 번 확인합니다.' : '알림 권한이 허용되지 않았습니다.';
+  if (permission === 'granted') await notifyDeadlineSummary();
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').then(notifyDeadlineSummary);
 render();

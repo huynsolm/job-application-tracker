@@ -4,6 +4,7 @@ import {
   buildCalendarEvent,
   deserializeApplications,
   filterApplications,
+  getApplicationStats,
   getDeadlineStatus,
   serializeApplications,
   sortApplicationsByDeadline,
@@ -77,4 +78,14 @@ test('getDeadlineStatus labels today, imminent, upcoming, overdue, and missing d
   assert.deepEqual(getDeadlineStatus('2026-10-11', today), { kind: 'upcoming', label: '마감까지 7일+' });
   assert.deepEqual(getDeadlineStatus('2026-10-03', today), { kind: 'overdue', label: '마감 지남' });
   assert.deepEqual(getDeadlineStatus('', today), { kind: 'none', label: '마감일 미정' });
+});
+
+test('getApplicationStats counts active, interview, monthly applications, and urgent deadlines', () => {
+  const stats = getApplicationStats([
+    { status: 'Applied', createdAt: '2026-10-01T00:00:00.000Z', deadline: '2026-10-04' },
+    { status: 'Interview', createdAt: '2026-10-02T00:00:00.000Z', deadline: '2026-10-09' },
+    { status: 'Closed', createdAt: '2026-10-02T00:00:00.000Z', deadline: '2026-10-03' },
+    { status: 'Saved', createdAt: '2026-09-30T00:00:00.000Z', deadline: '' },
+  ], '2026-10-04');
+  assert.deepEqual(stats, { active: 3, interviews: 1, monthly: 3, urgent: 2 });
 });

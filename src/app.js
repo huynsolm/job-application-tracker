@@ -1,4 +1,4 @@
-import { STATUSES, buildCalendarEvent, createApplication, deserializeApplications, filterApplications, getDeadlineStatus, serializeApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
+import { STATUSES, buildCalendarEvent, createApplication, deserializeApplications, filterApplications, getApplicationStats, getDeadlineStatus, serializeApplications, sortApplicationsByDeadline, validateApplication } from './tracker.js';
 
 const STORAGE_KEY = 'job-application-tracker:applications:v1';
 const form = document.querySelector('[data-application-form]');
@@ -16,8 +16,11 @@ function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(applicatio
 function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, (char) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' })[char]); }
 function render() {
   const visible = sortApplicationsByDeadline(filterApplications(applications, { query: search.value, status: statusFilter.value }));
-  document.querySelector('[data-active-count]').textContent = applications.filter(({ status }) => !['Offer', 'Closed'].includes(status)).length;
-  document.querySelector('[data-interview-count]').textContent = applications.filter(({ status }) => status === 'Interview').length;
+  const stats = getApplicationStats(applications);
+  document.querySelector('[data-active-count]').textContent = stats.active;
+  document.querySelector('[data-interview-count]').textContent = stats.interviews;
+  document.querySelector('[data-monthly-count]').textContent = stats.monthly;
+  document.querySelector('[data-urgent-count]').textContent = stats.urgent;
   if (!visible.length) { list.innerHTML = '<p class="empty">아직 표시할 지원 기록이 없습니다. 위 양식에서 첫 기록을 추가해 주세요.</p>'; return; }
   list.innerHTML = visible.map((application) => `<article class="application-card" data-id="${application.id}"><div><h3>${escapeHtml(application.company)}</h3><p>${escapeHtml(application.role)}</p><div class="meta"><span>상태: ${escapeHtml(application.status)}</span>${application.deadline ? `<span>마감: ${application.deadline}</span><span class="deadline ${getDeadlineStatus(application.deadline).kind}">${getDeadlineStatus(application.deadline).label}</span>` : '<span>마감일 미정</span>'}${application.url ? `<a href="${escapeHtml(application.url)}" target="_blank" rel="noopener noreferrer">공고 보기 ↗</a>` : ''}</div>${application.notes ? `<p class="notes">${escapeHtml(application.notes)}</p>` : ''}</div><div class="card-actions"><label class="sr-only" for="status-${application.id}">상태 변경</label><select id="status-${application.id}" data-status="${application.id}">${STATUSES.map((status) => `<option ${status === application.status ? 'selected' : ''}>${status}</option>`).join('')}</select>${application.deadline ? `<button type="button" data-calendar="${application.id}">일정 저장</button>` : ''}<button type="button" data-delete="${application.id}">삭제</button></div></article>`).join('');
 }

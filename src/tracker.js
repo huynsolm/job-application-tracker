@@ -25,6 +25,16 @@ export function getDeadlineStatus(deadline, today = new Date().toISOString().sli
   return { kind: 'upcoming', label: '마감까지 7일+' };
 }
 
+export function getApplicationStats(applications, today = new Date().toISOString().slice(0, 10)) {
+  const month = today.slice(0, 7);
+  return {
+    active: applications.filter(({ status }) => !['Offer', 'Closed'].includes(status)).length,
+    interviews: applications.filter(({ status }) => status === 'Interview').length,
+    monthly: applications.filter(({ createdAt }) => createdAt?.slice(0, 7) === month).length,
+    urgent: applications.filter(({ deadline }) => ['today', 'soon'].includes(getDeadlineStatus(deadline, today).kind)).length,
+  };
+}
+
 export function sortApplicationsByDeadline(applications) {
   return [...applications].sort((left, right) => {
     if (!left.deadline && !right.deadline) return 0;

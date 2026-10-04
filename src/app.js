@@ -32,4 +32,5 @@ list.addEventListener('click', (event) => { const id = event.target.dataset.cale
 function downloadBackup() { const blob = new Blob([serializeApplications(applications)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'), { href: url, download: 'job-application-tracker-backup.json' }); link.click(); URL.revokeObjectURL(url); backupMessage.textContent = `${applications.length}개 지원 기록을 백업 파일로 저장했습니다.`; }
 exportButton.addEventListener('click', downloadBackup);
 importInput.addEventListener('change', async () => { const [file] = importInput.files; if (!file) return; try { applications = deserializeApplications(await file.text()); persist(); render(); backupMessage.textContent = `${applications.length}개 지원 기록을 복원했습니다.`; } catch (error) { backupMessage.textContent = error.message; } finally { importInput.value = ''; } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 render();

@@ -17,6 +17,7 @@ https://team-library.biny.cloud/job-application-tracker/
 - `Saved` · `Applied` · `Interview` · `Offer` · `Closed` 상태 변경
 - 마감일을 `.ics` 캘린더 파일로 내보내기
 - JSON 백업 다운로드와 다른 브라우저에서의 JSON 복원
+- 휴대폰·PC에 설치 가능한 PWA 및 기본 오프라인 앱 셸
 - 반응형 UI와 키보드 접근성 지원
 
 ## Run locally
